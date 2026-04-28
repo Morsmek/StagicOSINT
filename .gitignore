@@ -1,0 +1,54 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+venv/
+.venv/
+ENV/
+backend/venv/
+
+# Databases and local runtime state
+*.db
+*.sqlite
+*.sqlite3
+backend/ogi.db
+backend/dist/ogi.db
+
+# Build artifacts
+build/
+dist/
+backend/build/
+backend/dist/
+frontend/dist/
+*.spec
+*.exe
+
+# JavaScript dependencies and caches
+node_modules/
+frontend/node_modules/
+.npm/
+.pnpm-store/
+.vite/
+frontend/.vite/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
