@@ -5,8 +5,12 @@ Entity types, graph nodes, edges, and transforms.
 from enum import Enum
 from typing import Any, Optional
 from pydantic import BaseModel, Field
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 # ---------------------------------------------------------------------------
@@ -30,7 +34,6 @@ class EntityType(str, Enum):
     NETWORK = "Network"
     MX_RECORD = "MXRecord"
     NS_RECORD = "NSRecord"
-    NAMESERVER = "Nameserver"
     SSL_CERTIFICATE = "SSLCertificate"
     SUBDOMAIN = "Subdomain"
     HTTP_HEADER = "HTTPHeader"
@@ -52,8 +55,8 @@ class EntityCreate(EntityBase):
 
 class Entity(EntityBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)
+    updated_at: datetime = Field(default_factory=_utcnow)
 
     # Graph position
     x: float = 0.0
@@ -79,7 +82,7 @@ class EdgeCreate(EdgeBase):
 
 class Edge(EdgeBase):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)
 
     class Config:
         from_attributes = True
@@ -95,8 +98,8 @@ class Graph(BaseModel):
     description: Optional[str] = None
     entities: list[Entity] = Field(default_factory=list)
     edges: list[Edge] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)
+    updated_at: datetime = Field(default_factory=_utcnow)
 
 class GraphCreate(BaseModel):
     name: str
@@ -156,7 +159,7 @@ class ApiKey(BaseModel):
     name: str
     key_masked: str  # Only show last 4 chars
     description: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)
 
 
 # ---------------------------------------------------------------------------

@@ -4,8 +4,11 @@ Discovers, registers, and runs transforms against graph entities.
 """
 from __future__ import annotations
 import importlib
+import logging
 import pkgutil
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 from models import EntityType, TransformResult, TransformInfo
 
@@ -40,7 +43,7 @@ class TransformRegistry:
                         instance = attr()
                         self._registry[instance.NAME] = instance
             except Exception as e:
-                print(f"[TransformEngine] Failed to load transforms.{module_name}: {e}")
+                logger.warning("Failed to load transforms.%s: %s", module_name, e)
 
     def get(self, name: str) -> "BaseTransform | None":
         return self._registry.get(name)
