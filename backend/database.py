@@ -4,18 +4,31 @@ Uses aiosqlite via SQLAlchemy async for lightweight local storage.
 Swap DATABASE_URL in config.py for PostgreSQL in production.
 """
 import sys
+import os
 import json
 from datetime import datetime
 from typing import Optional, Any
 import aiosqlite
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
-# When running as a PyInstaller .exe, store the DB next to the executable.
-# In dev mode, store it in the backend folder.
-if getattr(sys, 'frozen', False):
-    DB_PATH = Path(sys.executable).parent / "ogi.db"
-else:
-    DB_PATH = Path(__file__).parent / "ogi.db"
+
+def _sqlite_path_from_env() -> Path:
+    """Resolve the SQLite database path for local, packaged, and hosted deployments."""
+    database_url = os.getenv("DATABASE_URL", "").strip()
+    if database_url.startswith("sqlite"):
+        parsed = urlparse(database_url)
+        if parsed.path:
+            return Path(unquote(parsed.path)).expanduser()
+
+    if getattr(sys, 'frozen', False):
+        return Path(sys.executable).parent / "ogi.db"
+
+    return Path(__file__).parent / "ogi.db"
+
+
+DB_PATH = _sqlite_path_from_env()
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 async def get_db() -> aiosqlite.Connection:
