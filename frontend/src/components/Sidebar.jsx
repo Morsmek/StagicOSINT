@@ -12,7 +12,7 @@ const VIEWS = [
   { key: 'apikeys',    icon: '🔑',  label: 'API Keys' },
 ]
 
-const PINK = '#e91e8c'
+const PINK = '#ffd165'
 
 export function Sidebar() {
   const sidebarView    = useStore(s => s.sidebarView)
@@ -21,17 +21,17 @@ export function Sidebar() {
   return (
     <div style={{
       width: 310, display: 'flex', flexDirection: 'column',
-      background: '#050505', borderRight: '1px solid #110508', flexShrink: 0,
+      background: '#060C18', borderRight: '1px solid rgba(151, 174, 207, 0.16)', flexShrink: 0,
     }}>
       {/* Tab bar */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #110508', background: '#000' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid rgba(151, 174, 207, 0.16)', background: '#051426' }}>
         {VIEWS.map(v => {
           const active = sidebarView === v.key
           return (
             <button key={v.key} onClick={() => setSidebarView(v.key)} title={v.label}
               style={{
                 flex: 1, padding: '9px 4px',
-                background: active ? '#0a0005' : 'transparent',
+                    background: active ? 'rgba(255, 209, 101, 0.08)' : 'transparent',
                 border: 'none',
                 borderBottom: `2px solid ${active ? PINK : 'transparent'}`,
                 color: active ? PINK : '#334155',

@@ -48,33 +48,22 @@ export function Toolbar() {
 
   return (
     <div style={{
-      height: 50, background: '#000',
-      borderBottom: '1px solid #1a0a0f',
+      height: 58, background: '#060C18',
+      borderBottom: '1px solid rgba(151, 174, 207, 0.16)',
       display: 'flex', alignItems: 'center',
       padding: '0 18px', gap: 16, flexShrink: 0,
     }}>
       {/* Logo */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-        {/* Eye icon */}
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <circle cx="14" cy="14" r="13" stroke="#e91e8c" strokeWidth="1.8" />
-          <circle cx="14" cy="14" r="8" stroke="#e91e8c" strokeWidth="1.2" opacity="0.5" />
-          <ellipse cx="14" cy="14" rx="6" ry="4" stroke="#e91e8c" strokeWidth="1.4" />
-          <circle cx="14" cy="14" r="2.5" fill="#e91e8c" />
-        </svg>
-        {/* Wordmark */}
-        <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: 0.5, userSelect: 'none' }}>
-          <span style={{ color: '#fff' }}>Stagic</span>
-          <span style={{
-            background: 'linear-gradient(90deg, #e91e8c, #ff4d6d)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}>OSINT</span>
-        </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        <img
+          src="/stagic-logo-gold-transparent.png"
+          alt="StagicOSINT"
+          style={{ height: 34, width: 178, objectFit: 'contain', objectPosition: 'left center', filter: 'drop-shadow(0 0 10px rgba(255, 209, 101, 0.12))' }}
+        />
       </div>
 
       {/* Divider */}
-      <div style={{ width: 1, height: 20, background: '#1e293b' }} />
+      <div style={{ width: 1, height: 24, background: 'rgba(151, 174, 207, 0.16)' }} />
 
       {/* Active graph name */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -114,8 +103,8 @@ function Btn({ children, onClick, disabled }) {
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{
         background: 'transparent',
-        border: `1px solid ${hover && !disabled ? '#e91e8c' : '#1e293b'}`,
-        borderRadius: 5, color: disabled ? '#334155' : hover ? '#e91e8c' : '#64748b',
+        border: `1px solid ${hover && !disabled ? '#ffd165' : 'rgba(151, 174, 207, 0.16)'}`,
+        borderRadius: 5, color: disabled ? '#334155' : hover ? '#ffd165' : '#94a3b8',
         padding: '4px 11px', fontSize: 11, fontWeight: 600,
         letterSpacing: 0.3, cursor: disabled ? 'not-allowed' : 'pointer',
         transition: 'all 0.15s',

@@ -3,6 +3,7 @@ import { Toolbar }     from './components/Toolbar'
 import { Sidebar }     from './components/Sidebar'
 import { GraphCanvas } from './components/GraphCanvas'
 import { Toast }       from './components/Toast'
+import { OnboardingSplash } from './components/OnboardingSplash'
 
 class GraphErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null } }
@@ -41,6 +42,7 @@ export default function App() {
         </GraphErrorBoundary>
       </div>
       <Toast />
+      <OnboardingSplash />
     </div>
   )
 }
