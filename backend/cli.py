@@ -93,6 +93,7 @@ def run_transform(
 ):
     """Run a transform on an entity."""
     async def _run():
+        from config import settings
         from database import init_db, db_get_entity, db_get_api_key, db_create_entity, db_create_edge
         from transform_engine import registry
         await init_db()
@@ -104,8 +105,8 @@ def run_transform(
             return
 
         api_keys = {}
-        for name in ["SHODAN_API_KEY", "VIRUSTOTAL_API_KEY", "HUNTER_API_KEY"]:
-            val = await db_get_api_key(db, name)
+        for name in ["SHODAN_API_KEY", "VIRUSTOTAL_API_KEY", "HUNTER_API_KEY", "PROSPEO_API_KEY"]:
+            val = await db_get_api_key(db, name) or getattr(settings, name, None)
             if val:
                 api_keys[name] = val
 

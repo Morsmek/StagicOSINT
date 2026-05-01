@@ -8,6 +8,7 @@ const KEY_PRESETS = [
   { name: 'SHODAN_API_KEY', label: 'Shodan', description: 'Host/port scanning (ip_shodan transform)' },
   { name: 'VIRUSTOTAL_API_KEY', label: 'VirusTotal', description: 'File hash malware lookup' },
   { name: 'HUNTER_API_KEY', label: 'Hunter.io', description: 'Email discovery from domains' },
+  { name: 'PROSPEO_API_KEY', label: 'Prospeo', description: 'Professional email finder from person and company data' },
   { name: 'IPINFO_TOKEN', label: 'IPInfo', description: 'Detailed IP geolocation' },
   { name: 'OPENCAGE_API_KEY', label: 'OpenCage', description: 'Geocoding for locations' },
 ]

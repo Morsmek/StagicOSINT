@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     IPINFO_TOKEN: Optional[str] = None
     HUNTER_API_KEY: Optional[str] = None
     OPENCAGE_API_KEY: Optional[str] = None
+    PROSPEO_API_KEY: Optional[str] = None
 
     # AI Investigator (optional)
     OPENAI_API_KEY: Optional[str] = None

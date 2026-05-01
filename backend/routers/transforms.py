@@ -8,6 +8,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 import aiosqlite
 
+from config import settings
 from database import get_db, db_get_entity, db_create_entity, db_create_edge, db_get_api_key
 from models import TransformInput, TransformResult, TransformInfo, EntityType
 from transform_engine import registry
@@ -39,9 +40,9 @@ async def run_transform(body: TransformInput, db: aiosqlite.Connection = Depends
     # Gather API keys from DB
     api_keys: dict[str, str] = {}
     key_names = ["SHODAN_API_KEY", "VIRUSTOTAL_API_KEY", "IPINFO_TOKEN",
-                 "HUNTER_API_KEY", "OPENCAGE_API_KEY"]
+                 "HUNTER_API_KEY", "OPENCAGE_API_KEY", "PROSPEO_API_KEY"]
     for name in key_names:
-        val = await db_get_api_key(db, name)
+        val = await db_get_api_key(db, name) or getattr(settings, name, None)
         if val:
             api_keys[name] = val
 

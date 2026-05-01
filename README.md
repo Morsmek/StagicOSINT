@@ -120,6 +120,7 @@ ogi/
 - **email_domain**: Email → Domain
 - **email_verify**: Email → MX records (verification)
 - **email_hunter**: Domain → Email addresses (requires HUNTER_API_KEY)
+- **email_prospeo**: Person → Professional email address using Prospeo Enrich Person API (requires PROSPEO_API_KEY). Add person/company details as entity properties such as `full_name`, `company_name`, `company_website`, or `linkedin_url`.
 
 ### Hashes
 - **hash_virustotal**: File hash → Malware info (requires VIRUSTOTAL_API_KEY)
@@ -186,6 +187,7 @@ CORS_ORIGINS=["http://localhost:5173", "http://localhost:3000"]
 SHODAN_API_KEY=
 VIRUSTOTAL_API_KEY=
 HUNTER_API_KEY=
+PROSPEO_API_KEY=
 IPINFO_TOKEN=
 OPENCAGE_API_KEY=
 
