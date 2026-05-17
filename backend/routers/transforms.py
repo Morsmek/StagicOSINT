@@ -37,12 +37,19 @@ async def run_transform(body: TransformInput, db: aiosqlite.Connection = Depends
     if not entity:
         raise HTTPException(404, f"Entity {body.entity_id} not found")
 
-    # Gather API keys from DB
+    # Gather API keys: DB takes priority, fall back to environment variables
     api_keys: dict[str, str] = {}
-    key_names = ["SHODAN_API_KEY", "VIRUSTOTAL_API_KEY", "IPINFO_TOKEN",
-                 "HUNTER_API_KEY", "OPENCAGE_API_KEY", "PROSPEO_API_KEY"]
-    for name in key_names:
-        val = await db_get_api_key(db, name) or getattr(settings, name, None)
+    key_env_map = {
+        "SHODAN_API_KEY":     settings.SHODAN_API_KEY,
+        "VIRUSTOTAL_API_KEY": settings.VIRUSTOTAL_API_KEY,
+        "IPINFO_TOKEN":       settings.IPINFO_TOKEN,
+        "HUNTER_API_KEY":     settings.HUNTER_API_KEY,
+        "OPENCAGE_API_KEY":   settings.OPENCAGE_API_KEY,
+        "PROSPEO_API_KEY":    settings.PROSPEO_API_KEY,
+    }
+    for name, env_val in key_env_map.items():
+        db_val = await db_get_api_key(db, name)
+        val = db_val or env_val
         if val:
             api_keys[name] = val
 

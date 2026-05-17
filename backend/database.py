@@ -6,7 +6,7 @@ Swap DATABASE_URL in config.py for PostgreSQL in production.
 import sys
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Any
 import aiosqlite
 from pathlib import Path
@@ -99,7 +99,7 @@ async def init_db():
 # ---------------------------------------------------------------------------
 
 def _now() -> str:
-    return datetime.utcnow().isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 def _dumps(obj: Any) -> str:
     return json.dumps(obj)
