@@ -21,13 +21,26 @@ export function GraphsPanel() {
     e.preventDefault()
     if (!newName.trim()) return
     setCreating(true)
-    try {
-      const graph = await createGraph(newName.trim())
-      setNewName('')
-      await setActiveGraph(graph.id)
-      showToast(`"${graph.name}" created`, 'success')
-    } catch { showToast('Failed — is the backend running?', 'error') }
-    finally { setCreating(false) }
+    const name = newName.trim()
+    // Retry once — backend may be waking up on Render's free tier
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        if (attempt === 2) showToast('Backend waking up, retrying…', 'info')
+        const graph = await createGraph(name)
+        setNewName('')
+        await setActiveGraph(graph.id)
+        showToast(`"${graph.name}" created`, 'success')
+        setCreating(false)
+        return
+      } catch (err) {
+        if (attempt < 2) {
+          await new Promise(r => setTimeout(r, 3000))
+        } else {
+          showToast('Failed — backend unreachable. Try again in a moment.', 'error')
+        }
+      }
+    }
+    setCreating(false)
   }
 
   return (

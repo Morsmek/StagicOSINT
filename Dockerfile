@@ -10,7 +10,7 @@ RUN npm run build
 FROM python:3.11-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DATABASE_URL=sqlite:////data/ogi.db \
+    DATABASE_URL=sqlite+aiosqlite:////data/ogi.db \
     DEBUG=false
 
 WORKDIR /app
