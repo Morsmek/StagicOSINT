@@ -9,8 +9,10 @@ pydantic-settings>=2.1.0
 # Database
 aiosqlite>=0.19.0
 
-# HTTP client (for transforms)
-httpx>=0.26.0
+# HTTP client (for transforms + user_scanner http2 email scans)
+httpx[http2]>=0.27.0
+socksio>=1.0.0
+colorama>=0.4.6
 
 # DNS (for dns transforms)
 dnspython>=2.4.0
