@@ -2,12 +2,45 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>StagicOSINT</title>
+    <title>SDBA — Stagic Data Breach Alert</title>
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html, body, #root { height: 100%; width: 100%; overflow: hidden; }
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #000; color: #e2e8f0; }
+      :root {
+        --bg:        #0e0f0d;
+        --bg-2:      #16170f;
+        --surface:   #1b1c16;
+        --surface-2: #232419;
+        --border:    #33342a;
+        --border-2:  #44453a;
+        --text:      #ecebe1;
+        --muted:     #b8b8b0;
+        --faint:     #7a7a70;
+        --gold:      #d8c898;
+        --gold-2:    #c9b57a;
+        --gold-dim:  rgba(216,200,152,0.12);
+        --critical:  #e3756b;
+        --high:      #e0a35c;
+        --medium:    #d8c898;
+        --low:       #8fae8f;
+        --clear:     #6f9d8a;
+      }
+      html, body, #root { height: 100%; width: 100%; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+      }
+      ::-webkit-scrollbar { width: 10px; height: 10px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #2c2d22; border-radius: 6px; }
+      ::-webkit-scrollbar-thumb:hover { background: #3a3b2e; }
+      input, button { font-family: inherit; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     </style>
   </head>
   <body>

@@ -1,221 +1,123 @@
-# OGI - Open Graph Intelligence
+# SDBA — Stagic Data Breach Alert
 
-An open-source link analysis and OSINT framework built with FastAPI (backend) and React (frontend). Discover relationships between entities through intelligent transforms.
+A proactive, **zero-knowledge** data-breach detection platform. SDBA correlates
+identities against five layers of breach intelligence — surface web, legacy
+breach databases, deep-web databases, underground forums and dark-web markets —
+without the plaintext identifier ever leaving the browser.
+
+Built with FastAPI (backend) and React + Vite (frontend), implementing the core
+capabilities from the SDBA Enterprise Whitepaper.
 
 ## Features
 
-- **Graph-based entity modeling**: Nodes (entities) and edges (relationships)
-- **9+ transform modules**: DNS, IP geolocation, SSL certificates, email discovery, social media, hashes, web scraping, and more
-- **Interactive visualization**: React Flow-based graph canvas with drag-and-drop
-- **Multi-graph workspace**: Manage multiple investigations simultaneously
-- **API key management**: Securely store keys for external services (Shodan, VirusTotal, Hunter.io, etc.)
-- **MTGX export/import**: Portable graph format for sharing
-- **Force-directed layout**: Auto-arrange nodes for clarity
-- **Dark theme UI**: Modern, easy-on-the-eyes interface
+- **Zero-Knowledge Breach Scan** — identifiers are hashed with SHA-256 in the
+  browser (Web Crypto API); only the digest is transmitted to the server.
+- **Multi-Layer Intelligence** — every scan is correlated across five layers:
+  Surface Web, Legacy Breach DB, Deep Web Database, Underground Forum and Dark
+  Web Market.
+- **Risk Scoring** — a 0–100 score (Clear → Critical) weighted by severity,
+  recency, exposed data classes and the layer a finding surfaced on.
+- **Continuous Monitoring** — register employee emails or company domains as
+  monitored assets; only their hashes are stored.
+- **Scan-by-Proxy (Supply Chain)** — track vendor / partner domains and score
+  third-party breach exposure. 62% of enterprise breaches start with a vendor.
+- **Breach Alerts** — incidents raised automatically when an identity surfaces
+  on a high-risk layer or has credentials exposed; acknowledge and triage.
+- **Immutable Audit Ledger** — every action is sealed into a SHA-256 hash chain
+  with a per-entry "blockchain transaction key", verifiable for tamper-evidence.
+- **Threat Intelligence Catalog** — a reference corpus of 20 documented breaches
+  (3.8B+ records) browsable by layer.
+- **Logo-matched theme** — the SDBA gray (`#b8b8b0`) and champagne-gold
+  (`#d8c898`) palette is used throughout.
 
 ## Quick Start
 
-### Using Docker Compose (recommended)
-
+### Docker Compose
 ```bash
 docker-compose up
 ```
-
-Then open http://localhost:5173 in your browser.
-
-Backend API: http://localhost:8000
-Frontend: http://localhost:5173
+Open http://localhost:5173 (frontend) — the backend API runs on http://localhost:8000.
 
 ### Local Development
 
-**Backend:**
+**Backend**
 ```bash
 cd backend
 pip install -r ../requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-**Frontend:**
+**Frontend**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+Open http://localhost:5173. The Vite dev server proxies `/api` to the backend.
 
-## Project Structure
-
+### Single-process (backend serves the built UI)
+```bash
+cd frontend && npm install && npm run build
+cd ../backend && uvicorn main:app --port 8000
 ```
-ogi/
-├── backend/
-│   ├── config.py           # Configuration and settings
-│   ├── models.py           # Pydantic data models
-│   ├── database.py         # SQLite async database layer
-│   ├── graph_engine.py     # Graph analysis (centrality, paths, layout)
-│   ├── transform_engine.py # Transform discovery and execution
-│   ├── main.py             # FastAPI app entry point
-│   ├── cli.py              # Command-line interface
-│   ├── routers/            # API route handlers
-│   │   ├── graphs.py
-│   │   ├── entities.py
-│   │   ├── transforms.py
-│   │   └── api_keys.py
-│   ├── transforms/         # Transform modules (plugins)
-│   │   ├── base.py
-│   │   ├── dns.py
-│   │   ├── ip.py
-│   │   ├── ssl.py
-│   │   ├── email.py
-│   │   ├── hash.py
-│   │   ├── web.py
-│   │   └── social.py
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── src/
-│   │   ├── main.jsx
-│   │   ├── App.jsx
-│   │   ├── api/
-│   │   │   └── client.js   # Axios API client
-│   │   ├── store/
-│   │   │   └── index.js    # Zustand state store
-│   │   └── components/
-│   │       ├── Toolbar.jsx
-│   │       ├── Sidebar.jsx
-│   │       ├── GraphCanvas.jsx
-│   │       ├── EntityNode.jsx
-│   │       ├── Toast.jsx
-│   │       └── panels/
-│   │           ├── GraphsPanel.jsx
-│   │           ├── EntityPanel.jsx
-│   │           ├── TransformPanel.jsx
-│   │           └── ApiKeysPanel.jsx
-│   ├── index.html
-│   ├── vite.config.js
-│   ├── package.json
-│   ├── Dockerfile
-│   ├── nginx.conf
-│   └── src/
-├── docker-compose.yml
-└── README.md
-```
+Open http://localhost:8000 — FastAPI serves the React build and the API together.
 
-## Available Transforms
+## How the Zero-Knowledge Scan Works
 
-### DNS
-- **dns_resolve**: Domain → IP addresses
-- **dns_reverse**: IP address → Domain (reverse DNS)
-- **dns_mx**: Domain → MX records
-- **dns_ns**: Domain → Nameservers
-- **dns_subdomains**: Domain → Subdomains (brute-force common list)
+1. You type an email or domain in the browser.
+2. The client computes `SHA-256(lowercased identifier)` via the Web Crypto API.
+3. Only the 64-char hex digest + a masked label (e.g. `j*****@acme.com`) is sent.
+4. The server correlates the digest against the breach catalog and returns
+   findings, a risk score and a multi-layer breakdown.
 
-### IP / Network
-- **ip_geolocate**: IP → Location + ISP (ip-api.com, free)
-- **ip_whois**: IP → Organization + CIDR blocks (requires ipwhois library)
-- **ip_shodan**: IP → Open ports + services (requires SHODAN_API_KEY)
+The plaintext identifier never leaves your machine, and monitored assets are
+persisted by hash only.
 
-### SSL / TLS
-- **ssl_certificate**: Domain/IP → SSL certificate + subject + SANs
+## API
 
-### Email
-- **email_domain**: Email → Domain
-- **email_verify**: Email → MX records (verification)
-- **email_hunter**: Domain → Email addresses (requires HUNTER_API_KEY)
-- **email_prospeo**: Person → Professional email address using Prospeo Enrich Person API (requires PROSPEO_API_KEY). Add person/company details as entity properties such as `full_name`, `company_name`, `company_website`, or `linkedin_url`.
+All SDBA endpoints live under `/api/v1/sdba`:
 
-### Hashes
-- **hash_virustotal**: File hash → Malware info (requires VIRUSTOTAL_API_KEY)
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/scan` | Zero-knowledge breach scan (`hash` or `identifier`) |
+| `GET`  | `/dashboard` | Aggregate metrics, risk distribution, layer findings |
+| `GET`/`POST`/`DELETE` | `/assets` … | Monitored identities |
+| `POST` | `/assets/{id}/rescan` | Re-run correlation for an asset |
+| `GET`/`POST`/`DELETE` | `/vendors` … | Supply-chain (scan-by-proxy) |
+| `POST` | `/vendors/{id}/scan` | Re-scan a vendor domain |
+| `GET`  | `/alerts` · `POST /alerts/{id}/ack` | Breach alerts |
+| `GET`  | `/audit` · `GET /audit/verify` | Hash-chain audit ledger |
+| `GET`  | `/catalog` | Breach intelligence catalog |
 
-### Web
-- **web_scrape**: URL → Linked domains, emails, social profiles
-- **web_headers**: URL → HTTP headers
-
-### Social Media
-- **username_search**: Username → Profiles across platforms
-
-## API Endpoints
-
-All endpoints under `/api/v1/`:
-
-### Graphs
-- `GET /graphs` - List all graphs
-- `POST /graphs` - Create graph
-- `GET /graphs/{id}` - Get graph with entities + edges
-- `DELETE /graphs/{id}` - Delete graph
-- `GET /graphs/{id}/stats` - Graph statistics
-- `GET /graphs/{id}/layout` - Compute force-directed layout
-- `GET /graphs/{id}/path?source_id=X&target_id=Y` - Shortest path
-- `POST /graphs/{id}/import` - Import MTGX JSON
-- `GET /graphs/{id}/export` - Export MTGX JSON
-
-### Entities
-- `POST /graphs/{id}/entities` - Create entity
-- `GET /graphs/{id}/entities` - List entities
-- `PATCH /graphs/{id}/entities/{eid}` - Update entity
-- `DELETE /graphs/{id}/entities/{eid}` - Delete entity
-
-### Edges
-- `POST /graphs/{id}/edges` - Create edge
-- `DELETE /graphs/{id}/edges/{eid}` - Delete edge
-
-### Transforms
-- `GET /transforms` - List all available transforms
-- `GET /transforms/for/{type}` - List transforms for entity type
-- `POST /transforms/run` - Execute a transform
-
-### API Keys
-- `GET /api-keys` - List stored keys (masked)
-- `POST /api-keys` - Add/update key
-- `DELETE /api-keys/{id}` - Delete key
-
-## Configuration
-
-Backend configuration via environment variables or `.env`:
-
-```env
-# Core
-APP_NAME=OGI - Open Graph Intelligence
-APP_VERSION=1.0.0
-DEBUG=True
-
-# Database
-DATABASE_URL=sqlite+aiosqlite:///./ogi.db
-
-# CORS
-CORS_ORIGINS=["http://localhost:5173", "http://localhost:3000"]
-
-# Optional API Keys
-SHODAN_API_KEY=
-VIRUSTOTAL_API_KEY=
-HUNTER_API_KEY=
-PROSPEO_API_KEY=
-IPINFO_TOKEN=
-OPENCAGE_API_KEY=
-
-# Optional: AI features
-OPENAI_API_KEY=
-ANTHROPIC_API_KEY=
-```
+Interactive docs: http://localhost:8000/docs
 
 ## Architecture
 
-### Backend Stack
-- **FastAPI**: Modern async Python web framework
-- **Pydantic**: Data validation and serialization
-- **aiosqlite**: Async SQLite with async/await syntax
-- **httpx**: Async HTTP client for external API calls
+```
+backend/
+├── main.py              # FastAPI entry point (mounts SDBA router + React build)
+├── config.py
+└── sdba/
+    ├── intel.py         # Breach catalog + deterministic correlation + risk scoring
+    ├── db.py            # Async SQLite persistence + SHA-256 audit hash chain
+    └── router.py        # SDBA REST API
 
-### Frontend Stack
-- **React 18**: UI library with hooks
-- **Vite**: Fast build tool and dev server
-- **React Flow**: Interactive graph visualization
-- **Zustand**: Lightweight state management
-- **Axios**: HTTP client
-- **Tailwind CSS**: Utility-first styling (via inline styles in this version)
+frontend/
+├── public/sdba-logo.png # App logo (used as wordmark + favicon)
+└── src/
+    ├── App.jsx          # Sidebar shell, navigation, toasts
+    ├── lib/api.js       # API client + browser-side SHA-256 hashing
+    ├── components/ui.jsx# Themed primitives (logo palette)
+    └── views/           # Dashboard, ScanView, AssetsView, SupplyChainView,
+                         #   AlertsView, AuditView, CatalogView
+```
+
+> **Note on the intelligence engine:** breach correlation is *deterministic* —
+> a given identifier hash always yields the same findings — using a curated
+> catalog of real, publicly documented breaches. This makes the demo fully
+> functional offline. Wiring in a live source (e.g. an HIBP-style k-anonymity
+> range API) is a drop-in replacement for `intel.correlate()`.
 
 ## License
 
-MIT License. See LICENSE file for details.
-
-## Contributing
-
-Contributions welcome! Please submit pull requests and open issues for bugs or feature requests.
+MIT License.

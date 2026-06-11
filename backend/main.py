@@ -16,18 +16,21 @@ from fastapi.responses import FileResponse
 from config import settings
 from database import init_db
 from routers import graphs, entities, transforms, api_keys
+from sdba import db as sdba_db
+from sdba.router import router as sdba_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    await sdba_db.init_db()
     yield
 
 
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Open Source Link Analysis & OSINT Framework",
+    description="Stagic Data Breach Alert - Proactive, Zero-Knowledge Breach Detection",
     lifespan=lifespan,
 )
 
@@ -45,6 +48,7 @@ app.include_router(graphs.router,    prefix=settings.API_PREFIX)
 app.include_router(entities.router,  prefix=settings.API_PREFIX)
 app.include_router(transforms.router, prefix=settings.API_PREFIX)
 app.include_router(api_keys.router,  prefix=settings.API_PREFIX)
+app.include_router(sdba_router,      prefix=settings.API_PREFIX)
 
 
 @app.get("/health")
