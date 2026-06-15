@@ -4,9 +4,15 @@ title SDBA - Build
 
 echo.
 echo  ============================================================
-echo    SDBA — Stagic Data Breach Alert  ^|  Windows Build Script
+echo    SDBA - Stagic Data Breach Alert  ^|  Windows Build Script
 echo  ============================================================
 echo.
+
+:: ── Kill any running uvicorn/Python that might lock files ─────────────────────
+echo  Stopping any running SDBA/uvicorn processes...
+taskkill /F /IM uvicorn.exe /T >nul 2>&1
+taskkill /F /FI "WINDOWTITLE eq SDBA*" /T >nul 2>&1
+timeout /t 1 /nobreak >nul
 
 :: ── Step 1: Build the React frontend ─────────────────────────────────────────
 echo [1/4] Building React frontend...
@@ -33,14 +39,15 @@ echo.
 echo [2/4] Installing Python dependencies...
 cd /d "%~dp0backend"
 
-py -m pip install --quiet --upgrade ^
+:: --user avoids touching locked files in the system Scripts folder
+py -m pip install --quiet --user ^
     fastapi "uvicorn[standard]" aiosqlite "httpx[http2]" ^
     dnspython pydantic-settings ipwhois colorama socksio ^
     pyinstaller
 
 if %errorlevel% neq 0 (
     echo.
-    echo  ERROR: pip install failed.
+    echo  ERROR: pip install failed. See output above.
     echo  Make sure Python is installed: https://www.python.org
     pause & exit /b 1
 )
@@ -63,14 +70,11 @@ echo.
 :: ── Step 4: Done ─────────────────────────────────────────────────────────────
 echo [4/4] Build complete!
 echo.
-echo  ┌──────────────────────────────────────────────────────────┐
-echo  │  Your executable is ready:                               │
-echo  │                                                          │
-echo  │    %~dp0backend\dist\SDBA.exe
-echo  │                                                          │
-echo  │  Double-click SDBA.exe to launch.                        │
-echo  │  A browser window will open automatically.               │
-echo  └──────────────────────────────────────────────────────────┘
+echo  Your executable is ready:
+echo    %~dp0backend\dist\SDBA.exe
+echo.
+echo  Double-click SDBA.exe to launch.
+echo  A browser window will open automatically at http://127.0.0.1:8000
 echo.
 pause
 endlocal
