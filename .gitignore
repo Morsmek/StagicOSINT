@@ -34,7 +34,7 @@ dist/
 backend/build/
 backend/dist/
 frontend/dist/
-*.spec
+# *.spec   # allow SDBA.spec in version control
 *.exe
 
 # JavaScript dependencies and caches

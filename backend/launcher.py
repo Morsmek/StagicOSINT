@@ -1,5 +1,5 @@
 """
-StagicOSINT - Launcher
+SDBA - Launcher
 Entry point for the compiled .exe (PyInstaller).
 Starts FastAPI + opens a browser window automatically.
 """
@@ -13,7 +13,7 @@ import time
 if getattr(sys, 'frozen', False):
     # Add the bundle's extraction folder to sys.path so all modules resolve
     sys.path.insert(0, sys._MEIPASS)
-    # Write ogi.db next to the .exe, not into the temp extraction folder
+    # Write sdba.db next to the .exe, not into the temp extraction folder
     os.chdir(os.path.dirname(sys.executable))
 
 # ── Import the app OBJECT (not a string) so uvicorn can find it when frozen ─
@@ -31,8 +31,13 @@ def _open_browser():
 
 
 if __name__ == "__main__":
-    print(f"  StagicOSINT starting at {URL}")
-    print("  Press Ctrl+C to stop.\n")
+    print()
+    print("  ┌─────────────────────────────────────────┐")
+    print("  │  SDBA — Stagic Data Breach Alert        │")
+    print("  │  Starting at http://127.0.0.1:8000      │")
+    print("  │  Press Ctrl+C to stop.                  │")
+    print("  └─────────────────────────────────────────┘")
+    print()
 
     t = threading.Thread(target=_open_browser, daemon=True)
     t.start()
