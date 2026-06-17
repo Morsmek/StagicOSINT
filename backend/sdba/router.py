@@ -7,13 +7,37 @@ import json
 import time
 from typing import List, Optional
 
+import aiosqlite as _aiosqlite
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+import database as _ogi_db
 from . import db as store
 from . import intel
+from . import live_intel
 
 router = APIRouter(prefix="/sdba", tags=["sdba"])
+
+
+async def _get_hibp_key() -> Optional[str]:
+    """Read HIBP API key from the main ogi.db api_keys table (name='hibp')."""
+    try:
+        async with _aiosqlite.connect(str(_ogi_db.DB_PATH)) as db:
+            db.row_factory = _aiosqlite.Row
+            return await _ogi_db.db_get_api_key(db, "hibp")
+    except Exception:
+        return None
+
+
+def _merge_findings(catalog: List[dict], live: List[dict]) -> List[dict]:
+    """
+    Merge live and catalog findings. Live findings are authoritative; catalog
+    entries with the same breach name are suppressed to avoid duplication.
+    """
+    seen = {f["breach_name"].lower() for f in live}
+    merged = live + [f for f in catalog if f["breach_name"].lower() not in seen]
+    merged.sort(key=lambda f: (f.get("severity", 0), f.get("year", 0)), reverse=True)
+    return merged
 
 
 # ---------------------------------------------------------------------------
@@ -72,7 +96,13 @@ async def scan(req: ScanRequest):
     else:
         raise HTTPException(400, "provide either `hash` or `identifier`")
 
-    findings = intel.correlate(id_hash)
+    catalog_findings = intel.correlate(id_hash)
+    live_findings: List[dict] = []
+    if req.identifier:
+        hibp_key = await _get_hibp_key()
+        live_findings = await live_intel.live_scan(req.identifier, req.kind, hibp_key)
+    findings = _merge_findings(catalog_findings, live_findings)
+
     risk = intel.score_risk(findings)
     ts = store.now()
 
@@ -163,7 +193,13 @@ async def add_asset(req: AssetCreate):
     else:
         raise HTTPException(400, "provide either `hash` or `identifier`")
 
-    findings = intel.correlate(id_hash)
+    catalog_findings = intel.correlate(id_hash)
+    live_findings: List[dict] = []
+    if req.identifier:
+        hibp_key = await _get_hibp_key()
+        live_findings = await live_intel.live_scan(req.identifier, req.kind, hibp_key)
+    findings = _merge_findings(catalog_findings, live_findings)
+
     risk = intel.score_risk(findings)
     ts = store.now()
     async with store.connect() as db:

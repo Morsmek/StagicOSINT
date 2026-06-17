@@ -73,7 +73,11 @@ a = Analysis(
         'sdba',
         'sdba.db',
         'sdba.intel',
+        'sdba.live_intel',
         'sdba.router',
+        # live_intel dependencies
+        'httpx',
+        'socksio',
     ],
     hookspath=[],
     hooksconfig={},
