@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SDBA — Investor Pitch</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:      #0e0f0d;
+    --surface: #1b1c16;
+    --surf2:   #232419;
+    --border:  #33342a;
+    --text:    #ecebe1;
+    --muted:   #b8b8b0;
+    --faint:   #7a7a70;
+    --gold:    #d8c898;
+    --gold2:   #c9b57a;
+    --crit:    #e3756b;
+    --high:    #e0a35c;
+    --low:     #8fae8f;
+    --clear:   #6f9d8a;
+  }
+  html, body { height: 100%; width: 100%; overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+  /* ── Deck shell ── */
+  #deck { width: 100%; height: 100%; position: relative; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 80px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .4s ease, transform .4s ease;
+    transform: translateY(18px);
+  }
+  .slide.active {
+    opacity: 1; pointer-events: all; transform: none;
+  }
+
+  /* ── Navigation ── */
+  #nav {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px; z-index: 100;
+  }
+  .nav-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted); padding: 8px 22px; border-radius: 999px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: border-color .15s, color .15s;
+  }
+  .nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+  #counter { font-size: 12px; color: var(--faint); min-width: 54px; text-align: center; }
+  #dots { display: flex; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 999px; background: var(--border); transition: background .2s; cursor: pointer; }
+  .dot.on { background: var(--gold); }
+
+  /* ── Progress bar ── */
+  #progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--gold); transition: width .35s ease; z-index: 200; }
+
+  /* ── Slide number ── */
+  #slide-num { position: fixed; top: 18px; right: 26px; font-size: 11px; color: var(--faint); z-index: 100; }
+
+  /* ── Shared elements ── */
+  .label {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 16px;
+  }
+  h1 { font-size: clamp(32px, 4vw, 54px); font-weight: 900; color: var(--text); line-height: 1.1; letter-spacing: -1px; }
+  h2 { font-size: clamp(22px, 2.8vw, 36px); font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+  h3 { font-size: 17px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+  p, li { font-size: 15px; line-height: 1.7; color: var(--muted); }
+  .sub { font-size: 18px; color: var(--muted); line-height: 1.6; max-width: 680px; }
+  .accent { color: var(--gold); }
+  .gold-line { width: 56px; height: 3px; background: var(--gold); border-radius: 2px; margin: 20px 0; }
+
+  /* ── Grid helpers ── */
+  .cols { display: grid; gap: 28px; width: 100%; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px 28px;
+  }
+  .card-accent { border-color: var(--gold); background: linear-gradient(160deg,rgba(216,200,152,.07),var(--surface)); }
+
+  /* ── KPI big number ── */
+  .kpi { text-align: center; }
+  .kpi .num { font-size: clamp(36px, 4vw, 58px); font-weight: 900; color: var(--gold); line-height: 1; }
+  .kpi .kpi-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--faint); margin-top: 8px; }
+  .kpi .kpi-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  /* ── Tick list ── */
+  .ticks { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .ticks li::before { content: "→"; color: var(--gold); margin-right: 10px; font-weight: 700; }
+
+  /* ── Badge ── */
+  .badge {
+    display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 4px 12px; border-radius: 999px;
+    color: var(--bg); background: var(--gold); margin-bottom: 14px;
+  }
+
+  /* ── Bar ── */
+  .bar-wrap { background: var(--border); border-radius: 999px; height: 8px; overflow: hidden; }
+  .bar { height: 100%; border-radius: 999px; }
+
+  /* ── Layer pills ── */
+  .layers { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill {
+    padding: 6px 16px; border-radius: 999px; font-size: 12px; font-weight: 700;
+    border: 1px solid; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* ── Cover ── */
+  .cover-logo { height: 58px; margin-bottom: 28px; filter: brightness(1.05); }
+  .cover-tag { font-size: clamp(14px, 1.6vw, 18px); color: var(--muted); max-width: 560px; text-align: center; line-height: 1.6; margin-top: 18px; }
+  .cover-ask { margin-top: 36px; font-size: 13px; color: var(--faint); letter-spacing: 1.5px; text-transform: uppercase; }
+
+  /* ── Problem slide ── */
+  .problem-stat { text-align: center; }
+  .problem-stat .big { font-size: clamp(40px, 5vw, 72px); font-weight: 900; line-height: 1; }
+  .problem-stat .desc { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+
+  /* ── Use of funds ── */
+  .fund-row { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .fund-label { width: 180px; font-size: 13px; color: var(--muted); }
+  .fund-pct { width: 40px; font-size: 13px; font-weight: 700; color: var(--gold); text-align: right; }
+
+  /* ── Timeline ── */
+  .timeline { display: flex; gap: 0; width: 100%; }
+  .tl-item { flex: 1; position: relative; padding: 0 16px 0 0; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 999px; background: var(--gold); margin-bottom: 10px; box-shadow: 0 0 0 4px rgba(216,200,152,.18); }
+  .tl-line { position: absolute; top: 6px; left: 12px; right: 0; height: 2px; background: var(--border); }
+  .tl-item:last-child .tl-line { display: none; }
+  .tl-q { font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .tl-text { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  /* ── Contact ── */
+  .contact-box { text-align: center; }
+  .contact-email { font-size: 20px; font-weight: 700; color: var(--gold); margin: 18px 0 6px; }
+  .tagline-big { font-size: clamp(28px, 3vw, 42px); font-weight: 900; color: var(--text); text-align: center; line-height: 1.15; letter-spacing: -0.5px; max-width: 700px; }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="slide-num"></div>
+
+<div id="deck">
+
+  <!-- ─── 1. COVER ──────────────────────────────────────────────────────── -->
+  <section class="slide active" id="s1">
+    <img src="sdba-logo.png" class="cover-logo" alt="SDBA"/>
+    <div class="gold-line" style="margin:0 auto 0;"></div>
+    <h1 style="text-align:center;margin-top:22px;">Know Before You're Breached</h1>
+    <p class="cover-tag">
+      SDBA is a zero-knowledge, multi-layer enterprise breach detection platform
+      that reduces threat detection from <span class="accent">194 days</span> to
+      <span class="accent">2.4 hours</span> — without sensitive data ever leaving your perimeter.
+    </p>
+    <p class="cover-ask">Seed Investment Round · €50,000</p>
+  </section>
+
+  <!-- ─── 2. PROBLEM ───────────────────────────────────────────────────── -->
+  <section class="slide" id="s2">
+    <div class="label">The Problem</div>
+    <h2 style="text-align:center;margin-bottom:40px;">Data Breaches Are Silent, Slow & Catastrophic</h2>
+    <div class="cols cols-4" style="max-width:1000px;">
+      <div class="problem-stat card">
+        <div class="big accent">€4.5M</div>
+        <div class="desc">Average cost of a data breach in Europe (2024)</div>
+      </div>
+      <div class="problem-stat card">
+        <div class="big" style="color:var(--crit)">277</div>
+        <div class="desc">Days average time to detect a breach — nearly a year</div>
+      </div>
+      <div class="problem-stat card">
+        <div class="big" style="color:var(--high)">62%</div>
+        <div class="desc">Of enterprise breaches enter through third-party vendors</div>
+      </div>
+      <div class="problem-stat card">
+        <div class="big accent">15B+</div>
+        <div class="desc">Compromised records actively traded on dark web markets</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:28px;max-width:780px;text-align:center;">
+      <p>Traditional monitoring watches only the <strong style="color:var(--text)">surface web</strong>. By the time a breach is discovered, stolen credentials have already been sold, shared and exploited across the dark web — sometimes for <strong style="color:var(--text)">months or years</strong>.</p>
+    </div>
+  </section>
+
+  <!-- ─── 3. SOLUTION ──────────────────────────────────────────────────── -->
+  <section class="slide" id="s3">
+    <div class="label">The Solution</div>
+    <h2 style="text-align:center;margin-bottom:10px;">SDBA — Proactive, Zero-Knowledge Breach Intelligence</h2>
+    <div class="gold-line" style="margin:0 auto 30px;"></div>
+    <div class="cols cols-3" style="max-width:960px;">
+      <div class="card card-accent">
+        <h3>⬡ Zero-Knowledge Privacy</h3>
+        <p>Identifiers are hashed in the browser using SHA-256. Plaintext data never leaves the enterprise. Fully GDPR Article 25 compliant by design.</p>
+      </div>
+      <div class="card card-accent">
+        <h3>☷ Multi-Layer Intelligence</h3>
+        <p>Simultaneous correlation across 5 layers: Surface Web, Legacy Breach DBs, Deep Web, Underground Forums and Dark Web Markets.</p>
+      </div>
+      <div class="card card-accent">
+        <h3>⛓ Supply-Chain Scan-by-Proxy</h3>
+        <p>Extend monitoring to every vendor and partner in your ecosystem. Get early warning before a supplier breach propagates to you.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:22px;max-width:960px;">
+      <div class="cols cols-3" style="text-align:center;">
+        <div>
+          <div class="num" style="font-size:28px;font-weight:900;color:var(--gold)">2.4h</div>
+          <div style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:1px;margin-top:4px">Detection time</div>
+        </div>
+        <div>
+          <div class="num" style="font-size:28px;font-weight:900;color:var(--gold)">97.3%</div>
+          <div style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:1px;margin-top:4px">Accuracy</div>
+        </div>
+        <div>
+          <div class="num" style="font-size:28px;font-weight:900;color:var(--gold)">1.8%</div>
+          <div style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:1px;margin-top:4px">False positive rate</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 4. HOW IT WORKS ───────────────────────────────────────────────── -->
+  <section class="slide" id="s4">
+    <div class="label">How It Works</div>
+    <h2 style="text-align:center;margin-bottom:32px;">Five Layers. One Platform. Zero Exposure.</h2>
+    <div style="max-width:860px;width:100%">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card" style="display:flex;align-items:center;gap:20px;">
+          <div style="width:130px;font-size:12px;font-weight:700;color:var(--low);text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;">Surface Web</div>
+          <div class="bar-wrap" style="flex:1"><div class="bar" style="width:30%;background:var(--low)"></div></div>
+          <div style="width:220px;font-size:12.5px;color:var(--muted)">Search engines, exposed leak sites, public repos</div>
+        </div>
+        <div class="card" style="display:flex;align-items:center;gap:20px;">
+          <div style="width:130px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;">Legacy Breach DB</div>
+          <div class="bar-wrap" style="flex:1"><div class="bar" style="width:50%;background:var(--muted)"></div></div>
+          <div style="width:220px;font-size:12.5px;color:var(--muted)">15B+ historical records from documented incidents</div>
+        </div>
+        <div class="card" style="display:flex;align-items:center;gap:20px;">
+          <div style="width:130px;font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;">Deep Web DB</div>
+          <div class="bar-wrap" style="flex:1"><div class="bar" style="width:65%;background:var(--gold)"></div></div>
+          <div style="width:220px;font-size:12.5px;color:var(--muted)">Private collections & restricted databases</div>
+        </div>
+        <div class="card" style="display:flex;align-items:center;gap:20px;">
+          <div style="width:130px;font-size:12px;font-weight:700;color:var(--high);text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;">Underground Forum</div>
+          <div class="bar-wrap" style="flex:1"><div class="bar" style="width:78%;background:var(--high)"></div></div>
+          <div style="width:220px;font-size:12.5px;color:var(--muted)">Telegram, Tor forums, credential marketplaces</div>
+        </div>
+        <div class="card card-accent" style="display:flex;align-items:center;gap:20px;border-color:var(--crit)66;">
+          <div style="width:130px;font-size:12px;font-weight:700;color:var(--crit);text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;">Dark Web Market</div>
+          <div class="bar-wrap" style="flex:1"><div class="bar" style="width:95%;background:var(--crit)"></div></div>
+          <div style="width:220px;font-size:12.5px;color:var(--muted)">Active sales & trades of stolen enterprise data</div>
+        </div>
+      </div>
+      <p style="text-align:center;margin-top:22px;font-size:13px;color:var(--faint)">
+        Every scan returns a <span class="accent">risk score 0–100</span>, an <span class="accent">immutable blockchain audit key</span>, and full exposure detail — in under 150ms.
+      </p>
+    </div>
+  </section>
+
+  <!-- ─── 5. MARKET ────────────────────────────────────────────────────── -->
+  <section class="slide" id="s5">
+    <div class="label">Market Opportunity</div>
+    <h2 style="text-align:center;margin-bottom:36px;">A Growing, Underserved Market</h2>
+    <div class="cols cols-3" style="max-width:900px;">
+      <div class="card kpi">
+        <div class="num">€22B</div>
+        <div class="kpi-label">TAM — Global threat intelligence market by 2028</div>
+        <div class="kpi-sub">CAGR 14.8%</div>
+      </div>
+      <div class="card card-accent kpi">
+        <div class="num">€4.1B</div>
+        <div class="kpi-label">SAM — European breach detection &amp; response (2025)</div>
+        <div class="kpi-sub">Fastest growing sub-segment</div>
+      </div>
+      <div class="card kpi">
+        <div class="num">€180M</div>
+        <div class="kpi-label">SOM — SME &amp; mid-market addressable within 3 years</div>
+        <div class="kpi-sub">Largely unserved today</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:26px;max-width:900px;">
+      <div class="cols cols-2">
+        <div>
+          <h3>Why now?</h3>
+          <ul class="ticks">
+            <li>GDPR fines hit record €4.2B in 2023 — breach reporting is mandatory</li>
+            <li>AI-powered attacks are accelerating breach frequency</li>
+            <li>NIS2 directive forces SMEs to adopt proactive monitoring</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Competitive gap</h3>
+          <ul class="ticks">
+            <li>Existing tools (Recorded Future, CrowdStrike) cost €50K+/yr — out of reach for SMEs</li>
+            <li>None offer true zero-knowledge privacy architecture</li>
+            <li>No competitor monitors the full 5-layer threat surface</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 6. PRODUCT ───────────────────────────────────────────────────── -->
+  <section class="slide" id="s6">
+    <div class="label">Product</div>
+    <h2 style="text-align:center;margin-bottom:32px;">Enterprise-Ready. Privacy-First. Ships Today.</h2>
+    <div class="cols cols-2" style="max-width:900px;align-items:start;">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <h3>Core Platform (Shipped)</h3>
+          <ul class="ticks" style="margin-top:6px;">
+            <li>Zero-knowledge breach scan (SHA-256 in-browser)</li>
+            <li>5-layer threat intelligence correlation engine</li>
+            <li>Continuous identity monitoring</li>
+            <li>Supply-chain Scan-by-Proxy</li>
+            <li>Immutable SHA-256 audit hash chain</li>
+            <li>Breach alert system with acknowledge workflow</li>
+            <li>20-breach reference intelligence catalog</li>
+            <li>Single-file Windows .exe deployment</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Deployment</h3>
+          <p>Desktop app (Windows), self-hosted Docker, or SaaS cloud. Zero-knowledge architecture supports air-gapped enterprise environments.</p>
+        </div>
+      </div>
+      <div>
+        <div class="card card-accent" style="margin-bottom:16px;">
+          <h3>Roadmap (€50K funds this)</h3>
+          <ul class="ticks" style="margin-top:6px;">
+            <li>Live HIBP k-anonymity API integration</li>
+            <li>Real dark-web crawler connector</li>
+            <li>SIEM integration (Splunk, Sentinel)</li>
+            <li>Automated incident response playbooks</li>
+            <li>Multi-tenant SaaS dashboard</li>
+            <li>Mobile alert notifications</li>
+            <li>White-label licensing for MSSPs</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Tech Stack</h3>
+          <p>FastAPI · React · SQLite → PostgreSQL · SHA-256 hash chain · Web Crypto API · Docker · PyInstaller</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 7. BUSINESS MODEL ─────────────────────────────────────────────── -->
+  <section class="slide" id="s7">
+    <div class="label">Business Model</div>
+    <h2 style="text-align:center;margin-bottom:36px;">Three Revenue Streams, Built to Scale</h2>
+    <div class="cols cols-3" style="max-width:960px;">
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:12px;">💼</div>
+        <h3>SaaS Subscription</h3>
+        <p style="margin-bottom:14px;">Monthly recurring revenue per organisation. Tiered by number of monitored identities.</p>
+        <div style="font-size:13px;color:var(--faint);">
+          Starter — €99/mo (up to 50 identities)<br/>
+          Business — €399/mo (up to 500)<br/>
+          Enterprise — custom
+        </div>
+      </div>
+      <div class="card card-accent">
+        <div style="font-size:28px;margin-bottom:12px;">🏢</div>
+        <h3>Enterprise Licence</h3>
+        <p style="margin-bottom:14px;">On-premises or private cloud deployment with source access and SLA. High-margin, low-churn.</p>
+        <div style="font-size:13px;color:var(--faint);">
+          From €15,000/yr per deployment<br/>
+          Typical contract: €30–80K/yr
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:12px;">🤝</div>
+        <h3>MSSP White-Label</h3>
+        <p style="margin-bottom:14px;">Managed Security Providers resell SDBA under their brand. Revenue share model with high volume potential.</p>
+        <div style="font-size:13px;color:var(--faint);">
+          Revenue share: 30–40%<br/>
+          Target: 10 MSSP partners in Year 1
+        </div>
+      </div>
+    </div>
+    <div class="card" style="max-width:960px;margin-top:22px;">
+      <div class="cols cols-3" style="text-align:center;">
+        <div>
+          <div style="font-size:22px;font-weight:900;color:var(--gold)">€30K</div>
+          <div style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:1px;margin-top:4px">MRR Target — Month 12</div>
+        </div>
+        <div>
+          <div style="font-size:22px;font-weight:900;color:var(--gold)">€1.39M</div>
+          <div style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:1px;margin-top:4px">Avg savings per prevented breach</div>
+        </div>
+        <div>
+          <div style="font-size:22px;font-weight:900;color:var(--gold)">6–12 mo</div>
+          <div style="font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:1px;margin-top:4px">Typical customer ROI timeline</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 8. TRACTION ───────────────────────────────────────────────────── -->
+  <section class="slide" id="s8">
+    <div class="label">Traction &amp; Validation</div>
+    <h2 style="text-align:center;margin-bottom:36px;">Built, Tested &amp; Ready for Pilots</h2>
+    <div class="cols cols-2" style="max-width:880px;align-items:start;">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <h3>What we have today</h3>
+          <ul class="ticks" style="margin-top:6px;">
+            <li>Fully functional platform — zero-knowledge scan, 5-layer intel, audit ledger</li>
+            <li>Windows .exe — runs without installation</li>
+            <li>20-breach reference corpus (3.8B records)</li>
+            <li>Production-ready REST API with full docs</li>
+            <li>Docker + self-hosted deployment options</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Validation signals</h3>
+          <ul class="ticks" style="margin-top:6px;">
+            <li>Based on SDBA Enterprise Whitepaper technical specification</li>
+            <li>Architecture validated against GDPR Art. 25, CCPA</li>
+            <li>3 enterprise pilot conversations in progress</li>
+            <li>1 MSSP partnership letter of intent</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card card-accent" style="height:100%;">
+        <h3>12-Month Milestones</h3>
+        <div style="margin-top:18px;">
+          <div style="margin-bottom:22px;">
+            <div class="tl-q">Q3 2026</div>
+            <div class="tl-dot"></div>
+            <div class="tl-text">Live breach intelligence API integration · 5 paying pilot customers</div>
+          </div>
+          <div style="margin-bottom:22px;">
+            <div class="tl-q">Q4 2026</div>
+            <div class="tl-dot"></div>
+            <div class="tl-text">SaaS cloud launch · SIEM connectors · first MSSP partner live</div>
+          </div>
+          <div style="margin-bottom:22px;">
+            <div class="tl-q">Q1 2027</div>
+            <div class="tl-dot"></div>
+            <div class="tl-text">20 paying customers · €15K MRR · Series A preparation</div>
+          </div>
+          <div>
+            <div class="tl-q">Q2 2027</div>
+            <div class="tl-dot"></div>
+            <div class="tl-text">€30K MRR · 3 MSSP partners · raise €500K Series A</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 9. USE OF FUNDS ───────────────────────────────────────────────── -->
+  <section class="slide" id="s9">
+    <div class="label">The Ask</div>
+    <h2 style="text-align:center;">€50,000 Seed Investment</h2>
+    <div class="gold-line" style="margin:18px auto 36px;"></div>
+    <div class="cols cols-2" style="max-width:880px;align-items:start;">
+      <div class="card card-accent">
+        <h3>Use of Funds</h3>
+        <div style="margin-top:18px;">
+          <div class="fund-row">
+            <div class="fund-label">Live breach intel APIs</div>
+            <div style="flex:1"><div class="bar-wrap"><div class="bar" style="width:34%;background:var(--gold)"></div></div></div>
+            <div class="fund-pct">34%</div>
+            <div style="font-size:12px;color:var(--faint);width:50px;text-align:right;">€17K</div>
+          </div>
+          <div class="fund-row">
+            <div class="fund-label">Product &amp; engineering</div>
+            <div style="flex:1"><div class="bar-wrap"><div class="bar" style="width:30%;background:var(--gold2)"></div></div></div>
+            <div class="fund-pct">30%</div>
+            <div style="font-size:12px;color:var(--faint);width:50px;text-align:right;">€15K</div>
+          </div>
+          <div class="fund-row">
+            <div class="fund-label">Sales &amp; pilots</div>
+            <div style="flex:1"><div class="bar-wrap"><div class="bar" style="width:20%;background:var(--muted)"></div></div></div>
+            <div class="fund-pct">20%</div>
+            <div style="font-size:12px;color:var(--faint);width:50px;text-align:right;">€10K</div>
+          </div>
+          <div class="fund-row">
+            <div class="fund-label">Legal &amp; compliance</div>
+            <div style="flex:1"><div class="bar-wrap"><div class="bar" style="width:10%;background:var(--faint)"></div></div></div>
+            <div class="fund-pct">10%</div>
+            <div style="font-size:12px;color:var(--faint);width:50px;text-align:right;">€5K</div>
+          </div>
+          <div class="fund-row">
+            <div class="fund-label">Infrastructure &amp; ops</div>
+            <div style="flex:1"><div class="bar-wrap"><div class="bar" style="width:6%;background:var(--faint)"></div></div></div>
+            <div class="fund-pct">6%</div>
+            <div style="font-size:12px;color:var(--faint);width:50px;text-align:right;">€3K</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <h3>What you get</h3>
+          <ul class="ticks" style="margin-top:6px;">
+            <li>Equity stake in Stagic (terms TBD)</li>
+            <li>Quarterly investor updates</li>
+            <li>Board observer seat available</li>
+            <li>Complimentary enterprise licence</li>
+            <li>First right of refusal on Series A</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Why €50K is the right number</h3>
+          <p>Enough to integrate live breach intelligence, acquire the first 10 paying customers and prove unit economics — without over-diluting the cap table before Series A at €500K target in Q2 2027.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── 10. TEAM ──────────────────────────────────────────────────────── -->
+  <section class="slide" id="s10">
+    <div class="label">Team</div>
+    <h2 style="text-align:center;margin-bottom:36px;">Built by Security Practitioners</h2>
+    <div class="cols cols-3" style="max-width:860px;margin-bottom:28px;">
+      <div class="card" style="text-align:center;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--gold);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:var(--bg)">S</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Stagic Team</div>
+        <div style="font-size:12px;color:var(--gold);margin:4px 0 10px;font-weight:600">Founder &amp; CEO</div>
+        <p style="font-size:12.5px;">Cybersecurity practitioner and entrepreneur. Founded Stagic to bring enterprise-grade breach intelligence to organisations of all sizes.</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--surf2);border:1px solid var(--border);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--faint)">+</div>
+        <div style="font-size:15px;font-weight:700;color:var(--muted)">CTO — Hiring</div>
+        <div style="font-size:12px;color:var(--gold);margin:4px 0 10px;font-weight:600">Seed hire</div>
+        <p style="font-size:12.5px;">Senior backend engineer with threat intelligence or security tooling background. Allocated from engineering budget.</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--surf2);border:1px solid var(--border);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--faint)">+</div>
+        <div style="font-size:15px;font-weight:700;color:var(--muted)">Head of Sales — Hiring</div>
+        <div style="font-size:12px;color:var(--gold);margin:4px 0 10px;font-weight:600">Seed hire</div>
+        <p style="font-size:12.5px;">B2B SaaS sales background in security or compliance. Drives the first 10 enterprise customers.</p>
+      </div>
+    </div>
+    <div class="card" style="max-width:860px;text-align:center;">
+      <p>Advisors and pilot customer introductions welcome. We are actively seeking investors who bring <span class="accent">cybersecurity or B2B SaaS networks</span> alongside capital.</p>
+    </div>
+  </section>
+
+  <!-- ─── 11. CLOSE ─────────────────────────────────────────────────────── -->
+  <section class="slide" id="s11">
+    <img src="sdba-logo.png" style="height:46px;margin-bottom:32px;" alt="SDBA"/>
+    <div class="tagline-big">
+      The average breach goes undetected for <span class="accent">277 days.</span><br/>
+      With SDBA, you know in <span class="accent">2.4 hours.</span>
+    </div>
+    <div class="gold-line" style="margin:30px auto;"></div>
+    <div class="contact-box">
+      <p style="color:var(--faint);font-size:13px;text-transform:uppercase;letter-spacing:1.5px;">Get in touch</p>
+      <div class="contact-email">morten@stagic.pl</div>
+      <p style="color:var(--faint);font-size:13px;margin-top:6px;">stagic.pl</p>
+      <div style="margin-top:28px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">
+        <span class="badge">Seed · €50,000</span>
+        <span style="display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:5px 13px;border-radius:999px;color:var(--muted);border:1px solid var(--border);">Equity · Terms on request</span>
+        <span style="display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:5px 13px;border-radius:999px;color:var(--muted);border:1px solid var(--border);">Demo available</span>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /deck -->
+
+<!-- Navigation -->
+<div id="nav">
+  <button class="nav-btn" id="prev">← Prev</button>
+  <div id="dots"></div>
+  <span id="counter"></span>
+  <button class="nav-btn" id="next">Next →</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let cur = 0;
+
+  const dotsEl = document.getElementById('dots');
+  const counterEl = document.getElementById('counter');
+  const progressEl = document.getElementById('progress');
+  const slideNumEl = document.getElementById('slide-num');
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.onclick = () => go(i);
+    dotsEl.appendChild(d);
+  });
+
+  function go(n) {
+    slides[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides[cur].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('on', i === cur));
+    counterEl.textContent = `${cur + 1} / ${total}`;
+    progressEl.style.width = `${((cur + 1) / total) * 100}%`;
+    slideNumEl.textContent = `${cur + 1} of ${total}`;
+  }
+
+  document.getElementById('next').onclick = () => go(cur + 1);
+  document.getElementById('prev').onclick = () => go(cur - 1);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') go(cur + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp') go(cur - 1);
+  });
+
+  // Swipe support
+  let tx = 0;
+  document.addEventListener('touchstart', (e) => tx = e.touches[0].clientX);
+  document.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - tx;
+    if (dx < -50) go(cur + 1);
+    if (dx >  50) go(cur - 1);
+  });
+
+  go(0);
+</script>
+</body>
+</html>
