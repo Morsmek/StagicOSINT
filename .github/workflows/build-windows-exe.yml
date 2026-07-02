@@ -17,6 +17,9 @@ on:
       - 'requirements.txt'
       - '.github/workflows/build-windows-exe.yml'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -64,3 +67,20 @@ jobs:
           path: backend/dist/SDBA.exe
           if-no-files-found: error
           retention-days: 30
+
+      # ── Step 5: Publish a permanent, login-free download via Releases ────
+      # Re-points the moving "windows-latest-exe" tag at this commit and
+      # attaches SDBA.exe, so the URL below always serves the freshest build:
+      #   https://github.com/Morsmek/StagicOSINT/releases/download/windows-latest-exe/SDBA.exe
+      - name: Publish GitHub Release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          tag="windows-latest-exe"
+          gh release delete "$tag" --yes --cleanup-tag || true
+          gh release create "$tag" backend/dist/SDBA.exe \
+            --target "$GITHUB_SHA" \
+            --title "SDBA — Windows Build (latest)" \
+            --notes "Standalone Windows executable for SDBA (Stagic Data Breach Alert). Download **SDBA.exe** and double-click to launch — a browser window opens automatically at http://127.0.0.1:8000. No Python or Node install required."
